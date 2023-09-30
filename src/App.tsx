@@ -9,9 +9,10 @@ enum DirectionState {
 }
 
 export default function App() {
-  const [directionState, setDirectionState] = useState<DirectionState>(DirectionState.NONE);
-  const [socketUrl] = useState('ws://localhost:5001');
+  const url = process.env.REACT_APP_WEBSOCKET_SERVER ?? 'ws://localhost:5001';
+  const [socketUrl] = useState(url);
   const { sendMessage, readyState } = useWebSocket(socketUrl);
+  const [directionState, setDirectionState] = useState<DirectionState>(DirectionState.NONE);
 
   const connectionStatus = {
     [ReadyState.CONNECTING]: 'Connecting',
