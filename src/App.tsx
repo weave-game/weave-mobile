@@ -1,20 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import useWebSocket, { ReadyState } from 'react-use-websocket';
 
-enum ButtonState {
-  PRESSED,
-  RELEASED
-}
-
 enum DirectionState {
   LEFT,
   RIGHT,
-  NONE
+  FORWARD
 }
 
 export default function App() {
-  const [buttonState, setButtonState] = useState<ButtonState>(ButtonState.RELEASED);
-  const [directionState, setDirectionState] = useState<DirectionState>(DirectionState.NONE);
+  const [directionState, setDirectionState] = useState<DirectionState>(DirectionState.FORWARD);
   const [socketUrl] = useState('ws://localhost:5001');
   const { sendMessage, readyState } = useWebSocket(socketUrl);
 
@@ -28,18 +22,16 @@ export default function App() {
 
   useEffect(() => {
     if (readyState === ReadyState.OPEN) {
-      sendMessage(`${DirectionState[directionState]} ${ButtonState[buttonState]}`)
+      sendMessage(DirectionState[directionState])
     }
-  }, [buttonState, directionState, readyState, sendMessage])
+  }, [directionState, readyState, sendMessage])
 
   function HandleButtonUp() {
-    setDirectionState(DirectionState.NONE);
-    setButtonState(ButtonState.RELEASED)
+    setDirectionState(DirectionState.FORWARD);
   }
 
   function HandleButtonDown(direction: DirectionState) {
     setDirectionState(direction);
-    setButtonState(ButtonState.PRESSED)
   }
 
   return (
