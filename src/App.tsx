@@ -4,11 +4,12 @@ import useWebSocket, { ReadyState } from 'react-use-websocket';
 enum DirectionState {
   LEFT,
   RIGHT,
-  FORWARD
+  FORWARD,
+  NONE
 }
 
 export default function App() {
-  const [directionState, setDirectionState] = useState<DirectionState>(DirectionState.FORWARD);
+  const [directionState, setDirectionState] = useState<DirectionState>(DirectionState.NONE);
   const [socketUrl] = useState('ws://localhost:5001');
   const { sendMessage, readyState } = useWebSocket(socketUrl);
 
