@@ -32,12 +32,12 @@ export default function App() {
     }
   }, [buttonState, directionState, readyState, sendMessage])
 
-  function HandleButtonUp(){
+  function HandleButtonUp() {
     setDirectionState(DirectionState.NONE);
     setButtonState(ButtonState.RELEASED)
   }
 
-  function HandleButtonDown(direction: DirectionState){
+  function HandleButtonDown(direction: DirectionState) {
     setDirectionState(direction);
     setButtonState(ButtonState.PRESSED)
   }
