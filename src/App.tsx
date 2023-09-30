@@ -1,25 +1,9 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import useWebSocket, { ReadyState } from 'react-use-websocket';
 
 export default function App() {
-  const connectionString = 'ws://localhost:5001'
-  const [socketUrl, setSocketUrl] = useState(connectionString);
-  const [messageHistory, setMessageHistory] = useState<MessageEvent[]>([]);
-
+  const [socketUrl, setSocketUrl] = useState('ws://localhost:5001');
   const { sendMessage, lastMessage, readyState } = useWebSocket(socketUrl);
-
-  useEffect(() => {
-    if (lastMessage !== null) {
-      setMessageHistory((prev) => prev.concat(lastMessage));
-    }
-  }, [lastMessage, setMessageHistory]);
-
-  const handleClickChangeSocketUrl = useCallback(
-    () => setSocketUrl(connectionString),
-    []
-  );
-
-  const handleClickSendMessage = useCallback(() => sendMessage('Hello'), []);
 
   const connectionStatus = {
     [ReadyState.CONNECTING]: 'Connecting',
@@ -29,24 +13,25 @@ export default function App() {
     [ReadyState.UNINSTANTIATED]: 'Uninstantiated',
   }[readyState];
 
+  function HandleTurnLeft(){
+    useCallback(() => sendMessage('Hello'), []);
+  }
+
+  function HandleTurnRight(){
+    useCallback(() => sendMessage('Hello'), []);
+  }
+
   return (
     <div>
-      <button onClick={handleClickChangeSocketUrl}>
-        Click Me to change Socket Url
-      </button>
-      <button
-        onClick={handleClickSendMessage}
-        disabled={readyState !== ReadyState.OPEN}
-      >
-        Click Me to send 'Hello'
-      </button>
       <span>The WebSocket is currently {connectionStatus}</span>
-      {lastMessage ? <span>Last message: {lastMessage.data}</span> : null}
-      <ul>
-        {messageHistory.map((message, idx) => (
-          <span key={idx}>{message ? message.data : null}</span>
-        ))}
-      </ul>
+      <div style={{display: "flex"}}>
+        <div onClick={HandleTurnLeft}>
+          <img src="svg/left_arrow.svg" alt="Left arrow"/>
+        </div>
+        <div onClick={HandleTurnRight}>
+          <img src="svg/right_arrow.svg" alt="Right arrow"/>
+        </div>
+      </div>
     </div>
   );
 };
