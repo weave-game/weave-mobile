@@ -28,7 +28,7 @@ export default function App() {
 
   useEffect(() => {
     if (readyState === ReadyState.OPEN) {
-      sendMessage(`${directionState} ${buttonState}`)
+      sendMessage(`${DirectionState[directionState]} ${ButtonState[buttonState]}`)
     }
   }, [buttonState, directionState, readyState, sendMessage])
 
