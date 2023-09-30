@@ -37,8 +37,8 @@ export default function App() {
     setButtonState(ButtonState.RELEASED)
   }
 
-  function HandleButtonDown(direction: string){
-    setDirectionState(direction === "left" ? DirectionState.LEFT : DirectionState.RIGHT);
+  function HandleButtonDown(direction: DirectionState){
+    setDirectionState(direction);
     setButtonState(ButtonState.PRESSED)
   }
 
@@ -46,16 +46,16 @@ export default function App() {
     <div>
       <span>The WebSocket is currently {connectionStatus}</span>
       <div style={{ display: "flex" }}>
-        <div onMouseDown={() => HandleButtonDown("left")}
+        <div onMouseDown={() => HandleButtonDown(DirectionState.LEFT)}
           onMouseUp={HandleButtonUp}
-          onTouchStart={() => HandleButtonDown("left")}
+          onTouchStart={() => HandleButtonDown(DirectionState.LEFT)}
           onTouchEnd={HandleButtonUp}
           onTouchCancel={HandleButtonUp}>
           <img src="svg/left_arrow.svg" alt="Left arrow" />
         </div>
-        <div onMouseDown={() => HandleButtonDown("right")}
+        <div onMouseDown={() => HandleButtonDown(DirectionState.RIGHT)}
           onMouseUp={HandleButtonUp}
-          onTouchStart={() => HandleButtonDown("right")}
+          onTouchStart={() => HandleButtonDown(DirectionState.RIGHT)}
           onTouchEnd={HandleButtonUp}
           onTouchCancel={HandleButtonUp}>
           <img src="svg/right_arrow.svg" alt="Right arrow" />
