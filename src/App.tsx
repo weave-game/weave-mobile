@@ -28,13 +28,11 @@ export default function App() {
     }
   }, [directionState, readyState, sendMessage])
 
-  function HandleButtonUp(event: React.SyntheticEvent) {
-    event.preventDefault();
+  function HandleButtonUp() {
     setDirectionState(DirectionState.FORWARD);
   }
 
-  function HandleButtonDown(event: React.SyntheticEvent, direction: DirectionState) {
-    event.preventDefault();
+  function HandleButtonDown(direction: DirectionState) {
     setDirectionState(direction);
   }
 
@@ -42,19 +40,19 @@ export default function App() {
     <div>
       <span>The WebSocket is currently {connectionStatus}</span>
       <div style={{ display: "flex" }}>
-        <button onMouseDown={(event) => HandleButtonDown(event, DirectionState.LEFT)}
-          onMouseUp={(event) => HandleButtonUp(event)}
-          onTouchStart={(event) => HandleButtonDown(event, DirectionState.LEFT)}
-          onTouchEnd={(event) => HandleButtonUp(event)}
-          onTouchCancel={(event) => HandleButtonUp(event)}>
-          <img src="svg/left_arrow.svg" alt="Left arrow" />
+        <button onMouseDown={() => HandleButtonDown(DirectionState.LEFT)}
+          onMouseUp={HandleButtonUp}
+          onTouchStart={() => HandleButtonDown(DirectionState.LEFT)}
+          onTouchEnd={HandleButtonUp}
+          onTouchCancel={HandleButtonUp}>
+          <img onContextMenu={(e) => e.preventDefault()} src="svg/left_arrow.svg" alt="Left arrow" />
         </button>
-        <button onMouseDown={(event) => HandleButtonDown(event, DirectionState.RIGHT)}
-          onMouseUp={(event) => HandleButtonUp(event)}
-          onTouchStart={(event) => HandleButtonDown(event, DirectionState.RIGHT)}
-          onTouchEnd={(event) => HandleButtonUp(event)}
-          onTouchCancel={(event) => HandleButtonUp(event)}>
-          <img src="svg/right_arrow.svg" alt="Right arrow" />
+        <button onMouseDown={() => HandleButtonDown(DirectionState.RIGHT)}
+          onMouseUp={HandleButtonUp}
+          onTouchStart={() => HandleButtonDown(DirectionState.RIGHT)}
+          onTouchEnd={HandleButtonUp}
+          onTouchCancel={HandleButtonUp}>
+          <img onContextMenu={(e) => e.preventDefault} src="svg/right_arrow.svg" alt="Right arrow" />
         </button>
       </div>
     </div>
