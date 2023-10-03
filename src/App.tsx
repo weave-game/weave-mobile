@@ -52,7 +52,7 @@ export default function App() {
           onTouchStart={() => HandleButtonDown(DirectionState.RIGHT)}
           onTouchEnd={HandleButtonUp}
           onTouchCancel={HandleButtonUp}>
-          <img onContextMenu={(e) => e.preventDefault} src="svg/right_arrow.svg" alt="Right arrow" />
+          <img onContextMenu={(e) => e.preventDefault()} src="svg/right_arrow.svg" alt="Right arrow" />
         </button>
       </div>
     </div>
