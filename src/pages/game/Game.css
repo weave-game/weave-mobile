@@ -23,6 +23,15 @@
   display: block;
 }
 
+.button-left[disabled], .button-right[disabled] {
+  cursor: not-allowed; 
+  opacity: 0.5; 
+}
+
+.button-left[disabled] img, .button-right[disabled] img {
+  filter: grayscale(100%); 
+}
+
 .vertical-rule {
   height: 100%; 
   width: 1px; 
