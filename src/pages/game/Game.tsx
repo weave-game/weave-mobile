@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom'
-import { IMessage, MessageType } from '../types';
+import { IMessage, MessageType } from '../../types';
+import './Game.css'
 
 enum DirectionState {
   LEFT,
@@ -98,8 +99,9 @@ export default function Game() {
 
   return (
     <div>
-      <div style={{ display: "flex", justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
-        <button disabled={!isSendingPackets}
+      <div className="button-container">
+        <button className="button-left"
+          disabled={!isSendingPackets}
           onMouseDown={() => HandleButtonDown(DirectionState.LEFT)}
           onMouseUp={HandleButtonUp}
           onTouchStart={() => HandleButtonDown(DirectionState.LEFT)}
@@ -107,7 +109,9 @@ export default function Game() {
           onTouchCancel={HandleButtonUp}>
           <img onContextMenu={(e) => e.preventDefault()} src="svg/left_arrow.svg" alt="Left arrow" />
         </button>
-        <button disabled={!isSendingPackets} 
+        <div className="vertical-rule"></div>
+        <button className="button-right"
+          disabled={!isSendingPackets} 
           onMouseDown={() => HandleButtonDown(DirectionState.RIGHT)}
           onMouseUp={HandleButtonUp}
           onTouchStart={() => HandleButtonDown(DirectionState.RIGHT)}

@@ -8,7 +8,9 @@ export default function Lobby() {
     const navigate = useNavigate();
 
     function HandleClickJoinGame() {
-        navigate(inputText);
+        if (inputText !== "") {
+            navigate(inputText);
+        }
     }
 
     function HandleKeyDown(event: React.KeyboardEvent<HTMLInputElement>) {
@@ -24,14 +26,14 @@ export default function Lobby() {
     }, [])
 
     return (
-        <div className="lobby-container" style={{display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh'}}>
+        <div className="lobby-container" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
             <div>
-                <input className="input-lobby-code" 
+                <input className="input-lobby-code"
                     onKeyDown={HandleKeyDown}
                     ref={inputRef}
-                    type="text" 
-                    placeholder="Insert lobby code" 
-                    value={inputText} 
+                    type="text"
+                    placeholder="Insert lobby code"
+                    value={inputText}
                     onChange={(e) => setInputText(e.target.value)} />
             </div>
             <div>
