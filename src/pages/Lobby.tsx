@@ -10,10 +10,7 @@ export default function Lobby() {
     }
 
     return (
-        <div>
-            <div>
-                <p>This is the lobby!</p>
-            </div>
+        <div style={{display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh'}}>
             <div>
                 <input type="text" placeholder="Insert lobby code" value={inputText} onChange={(e) => setInputText(e.target.value)} />
             </div>

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useLocation } from 'react-router-dom'
 
 enum DirectionState {
   LEFT,
@@ -8,14 +9,16 @@ enum DirectionState {
 }
 
 export default function Game() {
+  const location = useLocation();
   const PACKET_INTERVAL_MS = 100;
-  const WEBSOCKET_URL = process.env.REACT_APP_WEBSOCKET_SERVER ?? 'ws://localhost:8081';
+  const WEBSOCKET_URL = GetWebSocketURL();
   const [directionState, setDirectionState] = useState<DirectionState>(DirectionState.NONE);
   const [isSendingPackets, setIsSendingPackets] = useState<boolean>(false);
   const dataChannel = useRef<RTCDataChannel>();
 
   // Set up WebSocket & WebRTC methods upon site loaded
   useEffect(() => {
+    console.log(WEBSOCKET_URL)
     const pc = new RTCPeerConnection();
     const ws = new WebSocket(WEBSOCKET_URL, []);
 
@@ -79,6 +82,11 @@ export default function Game() {
     setIsSendingPackets(false);
   }
 
+  function GetWebSocketURL() {
+    let baseURL = process.env.REACT_APP_WEBSOCKET_SERVER ?? 'ws://localhost:8081'
+    return `${baseURL}${location.pathname}`;
+  }
+
   function HandleButtonUp() {
     setDirectionState(DirectionState.FORWARD);
   }
@@ -89,21 +97,21 @@ export default function Game() {
 
   return (
     <div>
-      <div style={{ display: "flex" }}>
-        <button onMouseDown={() => HandleButtonDown(DirectionState.LEFT)}
+      <div style={{ display: "flex", justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
+        <div onMouseDown={() => HandleButtonDown(DirectionState.LEFT)}
           onMouseUp={HandleButtonUp}
           onTouchStart={() => HandleButtonDown(DirectionState.LEFT)}
           onTouchEnd={HandleButtonUp}
           onTouchCancel={HandleButtonUp}>
           <img onContextMenu={(e) => e.preventDefault()} src="svg/left_arrow.svg" alt="Left arrow" />
-        </button>
-        <button onMouseDown={() => HandleButtonDown(DirectionState.RIGHT)}
+        </div>
+        <div onMouseDown={() => HandleButtonDown(DirectionState.RIGHT)}
           onMouseUp={HandleButtonUp}
           onTouchStart={() => HandleButtonDown(DirectionState.RIGHT)}
           onTouchEnd={HandleButtonUp}
           onTouchCancel={HandleButtonUp}>
           <img onContextMenu={(e) => e.preventDefault()} src="svg/right_arrow.svg" alt="Right arrow" />
-        </button>
+        </div>
       </div>
     </div>
   );
