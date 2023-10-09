@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom'
+import { IMessage, MessageType } from '../types';
 
 enum DirectionState {
   LEFT,
@@ -35,7 +36,6 @@ export default function Game() {
     // Handle signaling server message
     ws.onmessage = async function (evt) {
       let obj = JSON.parse(evt.data);
-      console.log(obj)
       if (obj?.candidate) {
         pc.addIceCandidate(obj);
       }
@@ -45,8 +45,9 @@ export default function Game() {
           .then((answer) => pc.setLocalDescription(answer))
           .then(() => ws.send(JSON.stringify(pc.localDescription)));
       }
-      else if (obj?.command) {
-        setIsSendingPackets(obj.command === "start");
+      else if (obj?.message) {
+        let message : IMessage = obj.message;
+        setIsSendingPackets(message.MessageType === MessageType.StartGame);
       }
     };
   }, [WEBSOCKET_URL])
@@ -98,20 +99,22 @@ export default function Game() {
   return (
     <div>
       <div style={{ display: "flex", justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
-        <div onMouseDown={() => HandleButtonDown(DirectionState.LEFT)}
+        <button disabled={!isSendingPackets}
+          onMouseDown={() => HandleButtonDown(DirectionState.LEFT)}
           onMouseUp={HandleButtonUp}
           onTouchStart={() => HandleButtonDown(DirectionState.LEFT)}
           onTouchEnd={HandleButtonUp}
           onTouchCancel={HandleButtonUp}>
           <img onContextMenu={(e) => e.preventDefault()} src="svg/left_arrow.svg" alt="Left arrow" />
-        </div>
-        <div onMouseDown={() => HandleButtonDown(DirectionState.RIGHT)}
+        </button>
+        <button disabled={!isSendingPackets} 
+          onMouseDown={() => HandleButtonDown(DirectionState.RIGHT)}
           onMouseUp={HandleButtonUp}
           onTouchStart={() => HandleButtonDown(DirectionState.RIGHT)}
           onTouchEnd={HandleButtonUp}
           onTouchCancel={HandleButtonUp}>
           <img onContextMenu={(e) => e.preventDefault()} src="svg/right_arrow.svg" alt="Right arrow" />
-        </div>
+        </button>
       </div>
     </div>
   );
