@@ -32,7 +32,7 @@ export default function Lobby() {
                     onKeyDown={HandleKeyDown}
                     ref={inputRef}
                     type="text"
-                    placeholder="Insert lobby code"
+                    placeholder="Input lobby code"
                     value={inputText}
                     onChange={(e) => setInputText(e.target.value)} />
             </div>

@@ -85,7 +85,7 @@ export default function Game() {
   }
 
   function GetWebSocketURL() {
-    let baseURL = process.env.REACT_APP_WEBSOCKET_SERVER ?? 'ws://localhost:8081'
+    let baseURL = process.env.REACT_APP_WEBSOCKET_SERVER ?? 'ws://192.168.0.106:8081'
     return `${baseURL}${location.pathname}`;
   }
 
