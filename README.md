@@ -1,3 +1,1 @@
 # Weave Mobile Frontend
-
-##
