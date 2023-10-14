@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom'
-import { IMessage, MessageType } from '../../types';
+import toast, { Toaster } from 'react-hot-toast';
 import './Game.css'
 
 enum DirectionState {
@@ -26,8 +26,8 @@ export default function Game() {
 			]
 		};
 
-		let id = "id" + Math.random().toString(16).slice(2);
-		const pc = new RTCPeerConnection();
+		let id = "client-" + Math.random().toString(16).slice(2);
+		const pc = new RTCPeerConnection(configuration);
 		const ws = new WebSocket(WEBSOCKET_URL, []);
 		let candidateQueue: RTCIceCandidate[] = [];
 
@@ -35,13 +35,19 @@ export default function Game() {
 			ws.send(JSON.stringify({ type: "register-client", id: id, lobby_code: lobbyCode }));
 		}
 
+		ws.onerror = async () => {
+			ShowError("Unable to connect to server");
+		}
+
 		pc.onicecandidate = evt => evt.candidate && ws.send(JSON.stringify({ type: 'ice-candidate-client', candidate: evt.candidate, clientId: id }));
 
 		pc.ondatachannel = (ev) => {
 			dataChannel.current = ev.channel;
-			dataChannel.current.onmessage = HandleDataChannelMessage;
-			dataChannel.current.onopen = HandleDataChannelOpen;
-			dataChannel.current.onclose = HandleDataChannelClose;
+			dataChannel.current.onopen = () => ShowSuccess("Connection established");
+			dataChannel.current.onclose = () => {
+				ShowError("Connection lost");
+				setIsSendingPackets(false);
+			};
 		};
 
 		// Handle signaling server message
@@ -78,16 +84,15 @@ export default function Game() {
 					break;
 
 				case 'message':
-					let message: IMessage = obj.message;
-					setIsSendingPackets(message.MessageType === MessageType.StartGame);
+					setIsSendingPackets(obj.message === "start");
 					break;
 
 				case 'error':
-					HandleError(obj?.message);
+					ShowError(obj?.message);
 					break
 
 				default:
-					HandleError('Message type not supported');
+					ShowError('Message type not supported');
 			}
 		};
 
@@ -95,6 +100,14 @@ export default function Game() {
 
 	// Send the direction state continuously in case of packet loss
 	useEffect(() => {
+		function SendMessage(message: string) {
+			if (dataChannel.current && dataChannel.current.readyState === "open") {
+				dataChannel.current.send(message);
+			} else {
+				ShowError("Data channel is not open");
+			}
+		}
+
 		if (isSendingPackets) {
 			const interval = setInterval(() => {
 				SendMessage(DirectionState[directionState])
@@ -103,29 +116,12 @@ export default function Game() {
 		}
 	}, [directionState, isSendingPackets])
 
-	function SendMessage(message: string) {
-		if (dataChannel.current && dataChannel.current.readyState === "open") {
-			dataChannel.current.send(message);
-		} else {
-			HandleError("Data channel is not open. Cannot send message.");
-		}
+	function ShowSuccess(message?: string) {
+		toast.success(message ?? 'Success')
 	}
 
-	function HandleError(message: string) {
-		console.warn(message)
-	}
-
-	function HandleDataChannelMessage(event: MessageEvent) {
-		console.log("Received data channel message" + event.data)
-	}
-
-	function HandleDataChannelOpen() {
-		console.log("Data channel open")
-	}
-
-	function HandleDataChannelClose() {
-		console.log("Data channel closed")
-		setIsSendingPackets(false);
+	function ShowError(message?: string) {
+		toast.error(message ?? 'Error');
 	}
 
 	function HandleButtonUp() {
@@ -138,6 +134,7 @@ export default function Game() {
 
 	return (
 		<div>
+			<Toaster />
 			<div className="button-container">
 				<button className="button-left"
 					disabled={!isSendingPackets}
