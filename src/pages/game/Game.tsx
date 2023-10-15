@@ -119,7 +119,7 @@ export default function Game() {
   }
 
   function ShowLoading(message?: string) {
-    toast.loading(message ?? 'Loading...');
+    toast.loading(message ?? 'Loading...', { duration: 1500 });
   }
 
   function ShowError(message?: string) {
