@@ -157,11 +157,7 @@ export default function Game() {
           onTouchStart={() => HandleButtonDown(DirectionState.RIGHT)}
           onTouchEnd={HandleButtonUp}
           onTouchCancel={HandleButtonUp}>
-          <img src="svg/right_arrow.svg"
-            alt="Right arrow"
-            onContextMenu={(e) => e.preventDefault()}
-            onTouchStart={(e) => e.preventDefault()}
-            onTouchEnd={(e) => e.preventDefault()} />
+            &gt;
         </button>
       </div>
     </div>
