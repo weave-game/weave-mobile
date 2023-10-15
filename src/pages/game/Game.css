@@ -6,6 +6,7 @@
 }
 
 .button-left, .button-right {
+  font-size: 30em;
   flex: 1; 
   height: 100%;
   border: none; 
@@ -37,4 +38,9 @@
   width: 1px; 
   background-color: white; 
   margin: 0 10px; 
+}
+
+img {
+  -webkit-user-select: none;
+  user-select: none;
 }

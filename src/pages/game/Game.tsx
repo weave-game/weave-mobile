@@ -145,11 +145,7 @@ export default function Game() {
           onTouchStart={() => HandleButtonDown(DirectionState.LEFT)}
           onTouchEnd={HandleButtonUp}
           onTouchCancel={HandleButtonUp}>
-          <img src="svg/left_arrow.svg"
-            alt="Left arrow"
-            onContextMenu={(e) => e.preventDefault()}
-            onTouchStart={(e) => e.preventDefault()}
-            onTouchEnd={(e) => e.preventDefault()} />
+            &lt;
         </button>
 
         <div className="vertical-rule"></div>
