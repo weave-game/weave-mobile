@@ -145,9 +145,15 @@ export default function Game() {
           onTouchStart={() => HandleButtonDown(DirectionState.LEFT)}
           onTouchEnd={HandleButtonUp}
           onTouchCancel={HandleButtonUp}>
-          <img onContextMenu={(e) => e.preventDefault()} src="svg/left_arrow.svg" alt="Left arrow" />
+          <img src="svg/left_arrow.svg"
+            alt="Left arrow"
+            onContextMenu={(e) => e.preventDefault()}
+            onTouchStart={(e) => e.preventDefault()}
+            onTouchEnd={(e) => e.preventDefault()} />
         </button>
+
         <div className="vertical-rule"></div>
+
         <button className="button-right"
           disabled={!isAcceptingInput}
           onMouseDown={() => HandleButtonDown(DirectionState.RIGHT)}
@@ -155,7 +161,11 @@ export default function Game() {
           onTouchStart={() => HandleButtonDown(DirectionState.RIGHT)}
           onTouchEnd={HandleButtonUp}
           onTouchCancel={HandleButtonUp}>
-          <img onContextMenu={(e) => e.preventDefault()} src="svg/right_arrow.svg" alt="Right arrow" />
+          <img src="svg/right_arrow.svg"
+            alt="Right arrow"
+            onContextMenu={(e) => e.preventDefault()}
+            onTouchStart={(e) => e.preventDefault()}
+            onTouchEnd={(e) => e.preventDefault()} />
         </button>
       </div>
     </div>
