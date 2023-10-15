@@ -6,6 +6,7 @@
 }
 
 .button-left, .button-right {
+  color: white;
   font-size: 30em;
   flex: 1; 
   height: 100%;
@@ -15,6 +16,9 @@
   margin: 0 10px; 
   cursor: pointer; 
   overflow: hidden; 
+  -webkit-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
 }
 
 .button-left[disabled], .button-right[disabled] {
@@ -27,10 +31,4 @@
   width: 1px; 
   background-color: white; 
   margin: 0 10px; 
-}
-
-button {
-    -webkit-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
 }
