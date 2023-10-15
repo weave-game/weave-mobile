@@ -4,158 +4,160 @@ import toast, { Toaster } from 'react-hot-toast';
 import './Game.css'
 
 enum DirectionState {
-	LEFT,
-	RIGHT,
-	FORWARD,
-	NONE
+  LEFT,
+  RIGHT,
+  FORWARD,
+  NONE
 }
 
 export default function Game() {
-	const location = useLocation();
-	const PACKET_INTERVAL_MS = 100;
-	const WEBSOCKET_URL = process.env.REACT_APP_WEBSOCKET_SERVER ?? 'ws://localhost:8080';
-	const [directionState, setDirectionState] = useState<DirectionState>(DirectionState.NONE);
-	const [isSendingPackets, setIsSendingPackets] = useState<boolean>(false);
-	const dataChannel = useRef<RTCDataChannel>();
+  const location = useLocation();
+  const WEBSOCKET_URL = process.env.REACT_APP_WEBSOCKET_SERVER ?? 'ws://localhost:8080';
+  const [directionState, setDirectionState] = useState<DirectionState>(DirectionState.NONE);
+  const [isAcceptingInput, setIsAcceptingInput] = useState<boolean>(false);
+  const dataChannel = useRef<RTCDataChannel>();
 
-	useEffect(() => {
-		const lobbyCode = location.pathname.substring(1);
-		const configuration: RTCConfiguration = {
-			iceServers: [
-				{ urls: 'stun:stun.l.google.com:19302' }
-			]
-		};
+  useEffect(() => {
+    const id = Math.random().toString(16).slice(2);
+    const lobbyCode = location.pathname.substring(1);
+    const configuration: RTCConfiguration = {
+      iceServers: [
+        { urls: 'stun:stun.l.google.com:19302' }
+      ]
+    };
 
-		let id = "client-" + Math.random().toString(16).slice(2);
-		const pc = new RTCPeerConnection(configuration);
-		const ws = new WebSocket(WEBSOCKET_URL, []);
-		let candidateQueue: RTCIceCandidate[] = [];
+    const pc = new RTCPeerConnection(configuration);
+    const ws = new WebSocket(WEBSOCKET_URL, []);
+    let candidateQueue: RTCIceCandidate[] = [];
 
-		ws.onopen = async () => {
-			ws.send(JSON.stringify({ type: "register-client", id: id, lobby_code: lobbyCode }));
-		}
+    ShowLoading('Connecting to host...');
 
-		ws.onerror = async () => {
-			ShowError("Unable to connect to server");
-		}
+    ws.onopen = async () => {
+      ws.send(JSON.stringify({ type: 'register-client', id: id, lobby_code: lobbyCode }));
+    }
 
-		pc.onicecandidate = evt => evt.candidate && ws.send(JSON.stringify({ type: 'ice-candidate-client', candidate: evt.candidate, clientId: id }));
+    ws.onerror = async () => {
+      ShowError('Unable to connect to server');
+    }
 
-		pc.ondatachannel = (ev) => {
-			dataChannel.current = ev.channel;
-			dataChannel.current.onopen = () => ShowSuccess("Connection established");
-			dataChannel.current.onclose = () => {
-				ShowError("Connection lost");
-				setIsSendingPackets(false);
-			};
-		};
+    pc.onicecandidate = evt => evt.candidate && ws.send(JSON.stringify({ type: 'ice-candidate-client', candidate: evt.candidate, clientId: id }));
 
-		// Handle signaling server message
-		ws.onmessage = async function (evt) {
-			let obj = JSON.parse(evt.data);
+    pc.ondatachannel = (ev) => {
+      dataChannel.current = ev.channel;
+      dataChannel.current.onopen = () => ShowSuccess('Connection established');
+      dataChannel.current.onclose = () => {
+        ShowError('Connection lost');
+        setIsAcceptingInput(false);
+      };
+    };
 
-			switch (obj?.type) {
-				case 'ice-candidate':
-					let candidateObject = obj?.candidate;
-					if (!candidateObject.candidate.startsWith("candidate:")) {
-						candidateObject.candidate = "candidate:" + candidateObject.candidate;
-					}
-					if (pc.remoteDescription) {
-						pc.addIceCandidate(candidateObject);
-					} else {
-						candidateQueue.push(candidateObject);
-					}
-					break;
+    // Handle signaling server message
+    ws.onmessage = async function (evt) {
+      let obj = JSON.parse(evt.data);
 
-				case 'offer':
-					let newOffer = {
-						type: obj?.type,
-						sdp: obj?.offer.sdp
-					}
-					await pc.setRemoteDescription(new RTCSessionDescription(newOffer));
-					pc.createAnswer()
-						.then((answer) => pc.setLocalDescription(answer))
-						.then(() => ws.send(JSON.stringify({ type: "answer", answer: pc.localDescription, clientId: id })));
+      switch (obj?.type) {
+        case 'ice-candidate':
+          let candidateObject = obj?.candidate;
+          if (!candidateObject.candidate.startsWith('candidate:')) {
+            candidateObject.candidate = 'candidate:' + candidateObject.candidate;
+          }
+          if (pc.remoteDescription) {
+            pc.addIceCandidate(candidateObject);
+          } else {
+            candidateQueue.push(candidateObject);
+          }
+          break;
 
-					for (const candidate of candidateQueue) {
-						await pc.addIceCandidate(candidate);
-					}
-					candidateQueue = [];
-					break;
+        case 'offer':
+          let newOffer = {
+            type: obj?.type,
+            sdp: obj?.offer.sdp
+          }
+          await pc.setRemoteDescription(new RTCSessionDescription(newOffer));
+          pc.createAnswer()
+            .then((answer) => pc.setLocalDescription(answer))
+            .then(() => ws.send(JSON.stringify({ type: 'answer', answer: pc.localDescription, clientId: id })));
 
-				case 'message':
-					setIsSendingPackets(obj.message === "start");
-					break;
+          for (const candidate of candidateQueue) {
+            await pc.addIceCandidate(candidate);
+          }
+          candidateQueue = [];
+          break;
 
-				case 'error':
-					ShowError(obj?.message);
-					break
+        case 'message':
+          setIsAcceptingInput(obj.message === 'start');
+          break;
 
-				default:
-					ShowError('Message type not supported');
-			}
-		};
+        case 'error':
+          ShowError(obj?.message);
+          setIsAcceptingInput(false);
+          break
 
-	}, [WEBSOCKET_URL, location.pathname])
+        default:
+          ShowError('Message type not supported');
+      }
+    };
 
-	// Send the direction state continuously in case of packet loss
-	useEffect(() => {
-		function SendMessage(message: string) {
-			if (dataChannel.current && dataChannel.current.readyState === "open") {
-				dataChannel.current.send(message);
-			} else {
-				ShowError("Data channel is not open");
-			}
-		}
+  }, [WEBSOCKET_URL, location.pathname])
 
-		if (isSendingPackets) {
-			const interval = setInterval(() => {
-				SendMessage(DirectionState[directionState])
-			}, PACKET_INTERVAL_MS);
-			return () => clearInterval(interval);
-		}
-	}, [directionState, isSendingPackets])
+  useEffect(() => {
+    function SendMessage(message: string) {
+      if (dataChannel.current && dataChannel.current.readyState === 'open') {
+        dataChannel.current.send(message);
+      } else {
+        ShowError('Data channel is not open');
+      }
+    }
 
-	function ShowSuccess(message?: string) {
-		toast.success(message ?? 'Success')
-	}
+    if (isAcceptingInput) {
+      SendMessage(DirectionState[directionState])
+    }
+  }, [directionState, isAcceptingInput])
 
-	function ShowError(message?: string) {
-		toast.error(message ?? 'Error');
-	}
+  function ShowSuccess(message?: string) {
+    toast.success(message ?? 'Success')
+  }
 
-	function HandleButtonUp() {
-		setDirectionState(DirectionState.FORWARD);
-	}
+  function ShowLoading(message?: string) {
+    toast.loading(message ?? 'Loading...');
+  }
 
-	function HandleButtonDown(direction: DirectionState) {
-		setDirectionState(direction);
-	}
+  function ShowError(message?: string) {
+    toast.error(message ?? 'Error');
+  }
 
-	return (
-		<div>
-			<Toaster />
-			<div className="button-container">
-				<button className="button-left"
-					disabled={!isSendingPackets}
-					onMouseDown={() => HandleButtonDown(DirectionState.LEFT)}
-					onMouseUp={HandleButtonUp}
-					onTouchStart={() => HandleButtonDown(DirectionState.LEFT)}
-					onTouchEnd={HandleButtonUp}
-					onTouchCancel={HandleButtonUp}>
-					<img onContextMenu={(e) => e.preventDefault()} src="svg/left_arrow.svg" alt="Left arrow" />
-				</button>
-				<div className="vertical-rule"></div>
-				<button className="button-right"
-					disabled={!isSendingPackets}
-					onMouseDown={() => HandleButtonDown(DirectionState.RIGHT)}
-					onMouseUp={HandleButtonUp}
-					onTouchStart={() => HandleButtonDown(DirectionState.RIGHT)}
-					onTouchEnd={HandleButtonUp}
-					onTouchCancel={HandleButtonUp}>
-					<img onContextMenu={(e) => e.preventDefault()} src="svg/right_arrow.svg" alt="Right arrow" />
-				</button>
-			</div>
-		</div>
-	);
+  function HandleButtonUp() {
+    setDirectionState(DirectionState.FORWARD);
+  }
+
+  function HandleButtonDown(direction: DirectionState) {
+    setDirectionState(direction);
+  }
+
+  return (
+    <div>
+      <Toaster />
+      <div className="button-container">
+        <button className="button-left"
+          disabled={!isAcceptingInput}
+          onMouseDown={() => HandleButtonDown(DirectionState.LEFT)}
+          onMouseUp={HandleButtonUp}
+          onTouchStart={() => HandleButtonDown(DirectionState.LEFT)}
+          onTouchEnd={HandleButtonUp}
+          onTouchCancel={HandleButtonUp}>
+          <img onContextMenu={(e) => e.preventDefault()} src="svg/left_arrow.svg" alt="Left arrow" />
+        </button>
+        <div className="vertical-rule"></div>
+        <button className="button-right"
+          disabled={!isAcceptingInput}
+          onMouseDown={() => HandleButtonDown(DirectionState.RIGHT)}
+          onMouseUp={HandleButtonUp}
+          onTouchStart={() => HandleButtonDown(DirectionState.RIGHT)}
+          onTouchEnd={HandleButtonUp}
+          onTouchCancel={HandleButtonUp}>
+          <img onContextMenu={(e) => e.preventDefault()} src="svg/right_arrow.svg" alt="Right arrow" />
+        </button>
+      </div>
+    </div>
+  );
 };
