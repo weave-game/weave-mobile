@@ -30,7 +30,6 @@ export default function Game() {
     function handleConnected() {
       showSuccess("Connected!");
       setConnectionState(ConnectionState.CONNECTED);
-      setIsAcceptingInput(true);
     }
 
     function handleDisconnected(error?: string) {
@@ -60,7 +59,7 @@ export default function Game() {
     pc.ondatachannel = (ev) => {
       dataChannel.current = ev.channel;
       dataChannel.current.onopen = () => handleConnected();
-      dataChannel.current.onclose = () => handleDisconnected('Connected closed');
+      dataChannel.current.onclose = () => handleDisconnected('Connection closed');
     };
 
     // Handle signaling server message
