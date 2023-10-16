@@ -20,6 +20,8 @@ export default function Game() {
   const location = useLocation();
   const WEBSOCKET_URL = process.env.REACT_APP_WEBSOCKET_SERVER ?? 'ws://localhost:8080';
   const [directionState, setDirectionState] = useState<DirectionState>(DirectionState.NONE);
+  const [isLeftPressed, setIsLeftPressed] = useState<boolean>(false);
+  const [isRightPressed, setIsRightPressed] = useState<boolean>(false);
   const [connectionState, setConnectionState] = useState<ConnectionState>(ConnectionState.CONNECTING);
   const [isAcceptingInput, setIsAcceptingInput] = useState<boolean>(false);
   const dataChannel = useRef<RTCDataChannel>();
@@ -123,20 +125,22 @@ export default function Game() {
     }
   }, [directionState, isAcceptingInput])
 
+  useEffect(() => {
+    if ((isLeftPressed && isRightPressed) || (!isLeftPressed && !isRightPressed)) {
+      setDirectionState(DirectionState.FORWARD);
+    } else if (isLeftPressed) {
+      setDirectionState(DirectionState.LEFT);
+    } else if (isRightPressed) {
+      setDirectionState(DirectionState.RIGHT);
+    }
+  }, [isLeftPressed, isRightPressed]);
+
   function showSuccess(message?: string) {
     toast.success(message ?? 'Success')
   }
 
   function showError(message?: string) {
     toast.error(message ?? 'Error');
-  }
-
-  function handleButtonUp() {
-    setDirectionState(DirectionState.FORWARD);
-  }
-
-  function handleButtonDown(direction: DirectionState) {
-    setDirectionState(direction);
   }
 
   return (
@@ -166,11 +170,11 @@ export default function Game() {
       <div className="button-container">
         <button className="button-left"
           disabled={!isAcceptingInput}
-          onMouseDown={() => handleButtonDown(DirectionState.LEFT)}
-          onMouseUp={handleButtonUp}
-          onTouchStart={() => handleButtonDown(DirectionState.LEFT)}
-          onTouchEnd={handleButtonUp}
-          onTouchCancel={handleButtonUp}>
+          onMouseDown={() => setIsLeftPressed(true)}
+          onMouseUp={() => setIsLeftPressed(false)}
+          onTouchStart={() => setIsLeftPressed(true)}
+          onTouchEnd={() => setIsLeftPressed(false)}
+          onTouchCancel={() => setIsLeftPressed(false)}>
           &lt;
         </button>
 
@@ -178,11 +182,11 @@ export default function Game() {
 
         <button className="button-right"
           disabled={!isAcceptingInput}
-          onMouseDown={() => handleButtonDown(DirectionState.RIGHT)}
-          onMouseUp={handleButtonUp}
-          onTouchStart={() => handleButtonDown(DirectionState.RIGHT)}
-          onTouchEnd={handleButtonUp}
-          onTouchCancel={handleButtonUp}>
+          onMouseDown={() => setIsRightPressed(true)}
+          onMouseUp={() => setIsRightPressed(false)}
+          onTouchStart={() => setIsRightPressed(true)}
+          onTouchEnd={() => setIsRightPressed(false)}
+          onTouchCancel={() => setIsRightPressed(false)}>
           &gt;
         </button>
       </div>
