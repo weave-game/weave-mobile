@@ -10,14 +10,33 @@ enum DirectionState {
   NONE
 }
 
+enum ConnectionState {
+  CONNECTED,
+  DISCONNECTED,
+  CONNECTING
+}
+
 export default function Game() {
   const location = useLocation();
   const WEBSOCKET_URL = process.env.REACT_APP_WEBSOCKET_SERVER ?? 'ws://localhost:8080';
   const [directionState, setDirectionState] = useState<DirectionState>(DirectionState.NONE);
+  const [connectionState, setConnectionState] = useState<ConnectionState>(ConnectionState.CONNECTING);
   const [isAcceptingInput, setIsAcceptingInput] = useState<boolean>(false);
   const dataChannel = useRef<RTCDataChannel>();
 
   useEffect(() => {
+    function handleConnected() {
+      showSuccess("Connected!");
+      setConnectionState(ConnectionState.CONNECTED);
+      setIsAcceptingInput(true);
+    }
+
+    function handleDisconnected(error?: string) {
+      showError(error ?? 'Connection closed');
+      setConnectionState(ConnectionState.DISCONNECTED);
+      setIsAcceptingInput(false);
+    }
+
     const id = Math.random().toString(16).slice(2);
     const lobbyCode = location.pathname.substring(1);
     const configuration: RTCConfiguration = {
@@ -30,25 +49,16 @@ export default function Game() {
     const ws = new WebSocket(WEBSOCKET_URL, []);
     let candidateQueue: RTCIceCandidate[] = [];
 
-    ShowLoading('Connecting to host...');
+    ws.onopen = async () => { ws.send(JSON.stringify({ type: 'register-client', id: id, lobby_code: lobbyCode })); }
 
-    ws.onopen = async () => {
-      ws.send(JSON.stringify({ type: 'register-client', id: id, lobby_code: lobbyCode }));
-    }
-
-    ws.onerror = async () => {
-      ShowError('Unable to connect to server');
-    }
+    ws.onerror = async () => handleDisconnected('Unable to connect to server');
 
     pc.onicecandidate = evt => evt.candidate && ws.send(JSON.stringify({ type: 'ice-candidate-client', candidate: evt.candidate, clientId: id }));
 
     pc.ondatachannel = (ev) => {
       dataChannel.current = ev.channel;
-      dataChannel.current.onopen = () => ShowSuccess('Connection established');
-      dataChannel.current.onclose = () => {
-        ShowError('Connection lost');
-        setIsAcceptingInput(false);
-      };
+      dataChannel.current.onopen = () => handleConnected();
+      dataChannel.current.onclose = () => handleDisconnected('Connected closed');
     };
 
     // Handle signaling server message
@@ -89,23 +99,22 @@ export default function Game() {
           break;
 
         case 'error':
-          ShowError(obj?.message);
-          setIsAcceptingInput(false);
+          handleDisconnected(obj?.message);
           break
 
         default:
-          ShowError('Message type not supported');
+          showError('Message type not supported');
       }
     };
 
-  }, [WEBSOCKET_URL, location.pathname])
+  }, [WEBSOCKET_URL, location.pathname]);
 
   useEffect(() => {
     function SendMessage(message: string) {
       if (dataChannel.current && dataChannel.current.readyState === 'open') {
         dataChannel.current.send(message);
       } else {
-        ShowError('Data channel is not open');
+        showError('Data channel is not open');
       }
     }
 
@@ -114,50 +123,67 @@ export default function Game() {
     }
   }, [directionState, isAcceptingInput])
 
-  function ShowSuccess(message?: string) {
+  function showSuccess(message?: string) {
     toast.success(message ?? 'Success')
   }
 
-  function ShowLoading(message?: string) {
-    toast.loading(message ?? 'Loading...', { duration: 1500 });
-  }
-
-  function ShowError(message?: string) {
+  function showError(message?: string) {
     toast.error(message ?? 'Error');
   }
 
-  function HandleButtonUp() {
+  function handleButtonUp() {
     setDirectionState(DirectionState.FORWARD);
   }
 
-  function HandleButtonDown(direction: DirectionState) {
+  function handleButtonDown(direction: DirectionState) {
     setDirectionState(direction);
   }
 
   return (
     <div>
       <Toaster />
+      <div className="connection-state">
+        {connectionState === ConnectionState.CONNECTED && (
+          <div className="status connected">
+            <span className="status-dot"></span>
+            Connected
+          </div>
+        )}
+        {connectionState === ConnectionState.DISCONNECTED && (
+          <div className="status disconnected">
+            <span className="status-dot"></span>
+            Disconnected
+          </div>
+        )}
+        {connectionState === ConnectionState.CONNECTING && (
+          <div className="status connecting">
+            <span className="status-dot"></span>
+            Connecting...
+          </div>
+        )}
+      </div>
+
       <div className="button-container">
         <button className="button-left"
           disabled={!isAcceptingInput}
-          onMouseDown={() => HandleButtonDown(DirectionState.LEFT)}
-          onMouseUp={HandleButtonUp}
-          onTouchStart={() => HandleButtonDown(DirectionState.LEFT)}
-          onTouchEnd={HandleButtonUp}
-          onTouchCancel={HandleButtonUp}>
-            &lt;
+          onMouseDown={() => handleButtonDown(DirectionState.LEFT)}
+          onMouseUp={handleButtonUp}
+          onTouchStart={() => handleButtonDown(DirectionState.LEFT)}
+          onTouchEnd={handleButtonUp}
+          onTouchCancel={handleButtonUp}>
+          &lt;
         </button>
 
         <div className="vertical-rule"></div>
 
         <button className="button-right"
           disabled={!isAcceptingInput}
-          onMouseDown={() => HandleButtonDown(DirectionState.RIGHT)}
-          onMouseUp={HandleButtonUp}
-          onTouchStart={() => HandleButtonDown(DirectionState.RIGHT)}
-          onTouchEnd={HandleButtonUp}
-          onTouchCancel={HandleButtonUp}>
-            &gt;
+          onMouseDown={() => handleButtonDown(DirectionState.RIGHT)}
+          onMouseUp={handleButtonUp}
+          onTouchStart={() => handleButtonDown(DirectionState.RIGHT)}
+          onTouchEnd={handleButtonUp}
+          onTouchCancel={handleButtonUp}>
+          &gt;
         </button>
       </div>
     </div>
