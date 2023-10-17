@@ -171,7 +171,10 @@ export default function Game() {
           disabled={!isAcceptingInput}
           onMouseDown={() => setIsLeftPressed(true)}
           onMouseUp={() => setIsLeftPressed(false)}
-          onTouchStart={() => setIsLeftPressed(true)}
+          onTouchStart={(e) => {
+            e.preventDefault()
+            setIsLeftPressed(true)
+          }}
           onTouchEnd={() => setIsLeftPressed(false)}
           onTouchCancel={() => setIsLeftPressed(false)}>
           &lt;
@@ -183,7 +186,10 @@ export default function Game() {
           disabled={!isAcceptingInput}
           onMouseDown={() => setIsRightPressed(true)}
           onMouseUp={() => setIsRightPressed(false)}
-          onTouchStart={() => setIsRightPressed(true)}
+          onTouchStart={(e) => {
+            e.preventDefault()
+            setIsRightPressed(true)
+          }}
           onTouchEnd={() => setIsRightPressed(false)}
           onTouchCancel={() => setIsRightPressed(false)}>
           &gt;

@@ -8,6 +8,7 @@
 }
 
 .button-left, .button-right {
+  touch-action: manipulation;
   color: white;
   font-size: 30em;
   flex: 1; 
