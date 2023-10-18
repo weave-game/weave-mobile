@@ -18,13 +18,14 @@ enum ConnectionState {
 
 export default function Game() {
   const location = useLocation();
-  const WEBSOCKET_URL = process.env.REACT_APP_WEBSOCKET_SERVER ?? 'ws://localhost:8080';
   const [directionState, setDirectionState] = useState<DirectionState>(DirectionState.NONE);
   const [isLeftPressed, setIsLeftPressed] = useState<boolean>(false);
   const [isRightPressed, setIsRightPressed] = useState<boolean>(false);
   const [connectionState, setConnectionState] = useState<ConnectionState>(ConnectionState.CONNECTING);
   const [isAcceptingInput, setIsAcceptingInput] = useState<boolean>(false);
+  const [playerColor, setPlayerColor] = useState<string>('#fff');
   const dataChannel = useRef<RTCDataChannel>();
+  const WEBSOCKET_URL = process.env.REACT_APP_WEBSOCKET_SERVER ?? 'ws://localhost:8080';
 
   useEffect(() => {
     function handleConnected() {
@@ -45,16 +46,15 @@ export default function Game() {
         { urls: 'stun:stun.l.google.com:19302' }
       ]
     };
-
     const pc = new RTCPeerConnection(configuration);
     const ws = new WebSocket(WEBSOCKET_URL, []);
     let candidateQueue: RTCIceCandidate[] = [];
 
-    ws.onopen = async () => { ws.send(JSON.stringify({ type: 'register-client', id: id, lobby_code: lobbyCode })); }
+    ws.onopen = async () => sendWebsocketMessage({ type: 'register-client' });
 
     ws.onerror = async () => handleDisconnected('Unable to connect to server');
 
-    pc.onicecandidate = evt => evt.candidate && ws.send(JSON.stringify({ type: 'ice-candidate-client', candidate: evt.candidate, clientId: id }));
+    pc.onicecandidate = evt => evt.candidate && sendWebsocketMessage({ type: 'ice-candidate-client', candidate: evt.candidate });
 
     pc.ondatachannel = (ev) => {
       dataChannel.current = ev.channel;
@@ -87,7 +87,7 @@ export default function Game() {
           await pc.setRemoteDescription(new RTCSessionDescription(newOffer));
           pc.createAnswer()
             .then((answer) => pc.setLocalDescription(answer))
-            .then(() => ws.send(JSON.stringify({ type: 'answer', answer: pc.localDescription, clientId: id })));
+            .then(() => sendWebsocketMessage({ type: 'answer', answer: pc.localDescription }));
 
           for (const candidate of candidateQueue) {
             await pc.addIceCandidate(candidate);
@@ -99,6 +99,10 @@ export default function Game() {
           setIsAcceptingInput(obj.message === 'start');
           break;
 
+        case 'color-change':
+          setPlayerColor(rgbaToHex(obj?.color));
+          break
+
         case 'error':
           handleDisconnected(obj?.message);
           break
@@ -108,6 +112,11 @@ export default function Game() {
       }
     };
 
+    function sendWebsocketMessage(message: any) {
+      message.lobbyCode = lobbyCode;
+      message.clientId = id;
+      ws.send(JSON.stringify(message));
+    }
   }, [WEBSOCKET_URL, location.pathname]);
 
   useEffect(() => {
@@ -134,6 +143,31 @@ export default function Game() {
     }
   }, [isLeftPressed, isRightPressed]);
 
+  function rgbaToHex(rgba: string) {
+    // Extracting the values from the rgba string
+    const matches = RegExp(/\(([^)]+)\)/).exec(rgba);
+    if (!matches) return '';
+
+    const values = matches[1].split(',').map(parseFloat);
+
+    // Convert the RGB values to HEX
+    const toHex = (value: number): string => {
+      const hex = Math.round(value * 255).toString(16);
+      return hex.length === 1 ? '0' + hex : hex;
+    };
+
+    // Convert the alpha value to HEX (if it exists)
+    const alphaToHex = (value: number): string => {
+      const hex = Math.round(value * 255).toString(16);
+      return hex.length === 1 ? '0' + hex : hex;
+    };
+
+    const hexColor = `#${toHex(values[0])}${toHex(values[1])}${toHex(values[2])}`;
+    const alphaHex = values[3] !== undefined ? alphaToHex(values[3]) : '';
+
+    return hexColor + alphaHex;
+  }
+
   function showSuccess(message?: string) {
     toast.success(message ?? 'Success')
   }
@@ -145,6 +179,8 @@ export default function Game() {
   return (
     <div>
       <Toaster />
+      <div className="player-dot" style={{ backgroundColor: playerColor }} />
+
       <div className="connection-state">
         {connectionState === ConnectionState.CONNECTED && (
           <div className="status connected">
@@ -171,10 +207,7 @@ export default function Game() {
           disabled={!isAcceptingInput}
           onMouseDown={() => setIsLeftPressed(true)}
           onMouseUp={() => setIsLeftPressed(false)}
-          onTouchStart={(e) => {
-            e.preventDefault()
-            setIsLeftPressed(true)
-          }}
+          onTouchStart={() => { setIsLeftPressed(true) }}
           onTouchEnd={() => setIsLeftPressed(false)}
           onTouchCancel={() => setIsLeftPressed(false)}>
           &lt;
@@ -186,10 +219,7 @@ export default function Game() {
           disabled={!isAcceptingInput}
           onMouseDown={() => setIsRightPressed(true)}
           onMouseUp={() => setIsRightPressed(false)}
-          onTouchStart={(e) => {
-            e.preventDefault()
-            setIsRightPressed(true)
-          }}
+          onTouchStart={() => { setIsRightPressed(true) }}
           onTouchEnd={() => setIsRightPressed(false)}
           onTouchCancel={() => setIsRightPressed(false)}>
           &gt;
