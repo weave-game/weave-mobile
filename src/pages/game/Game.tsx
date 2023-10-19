@@ -137,6 +137,8 @@ export default function Game() {
       SendMessage(DirectionState[directionState])
     } else {
       setDirectionState(DirectionState.FORWARD);
+      setIsLeftPressed(false);
+      setIsRightPressed(false);
     }
   }, [directionState, isAcceptingInput])
 
