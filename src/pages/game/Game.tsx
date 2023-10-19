@@ -179,27 +179,33 @@ export default function Game() {
   return (
     <div>
       <Toaster />
-      <div className="player-dot" style={{ backgroundColor: playerColor }} />
 
-      <div className="connection-state">
-        {connectionState === ConnectionState.CONNECTED && (
-          <div className="status connected">
-            <span className="status-dot"></span>
-            Connected
-          </div>
-        )}
-        {connectionState === ConnectionState.DISCONNECTED && (
-          <div className="status disconnected">
-            <span className="status-dot"></span>
-            Disconnected
-          </div>
-        )}
-        {connectionState === ConnectionState.CONNECTING && (
-          <div className="status connecting">
-            <span className="status-dot"></span>
-            Connecting...
-          </div>
-        )}
+      <div className="status">
+        <div className="connection-state">
+          {connectionState === ConnectionState.CONNECTED && (
+            <div className="status connected">
+              <span className="status-dot"></span>
+              Connected
+            </div>
+          )}
+          {connectionState === ConnectionState.DISCONNECTED && (
+            <div className="status disconnected">
+              <span className="status-dot"></span>
+              Disconnected
+            </div>
+          )}
+          {connectionState === ConnectionState.CONNECTING && (
+            <div className="status connecting">
+              <span className="status-dot"></span>
+              Connecting...
+            </div>
+          )}
+        </div>
+
+        <div className="player-color-state">
+          Player color:
+          <span className="player-color-dot" style={{ backgroundColor: playerColor }}></span>
+        </div>
       </div>
 
       <div className="button-container">
