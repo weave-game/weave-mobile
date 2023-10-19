@@ -29,7 +29,7 @@ export default function Game() {
 
   useEffect(() => {
     function handleConnected() {
-      showSuccess("Connected!");
+      toast.success('Connected!');
       setConnectionState(ConnectionState.CONNECTED);
       setIsAcceptingInput(true);
     }
@@ -60,6 +60,8 @@ export default function Game() {
     ws.onerror = async () => handleDisconnected('WebSocket error: Unable to connect to server');
 
     pc.onicecandidate = evt => evt.candidate && sendWebsocketMessage({ type: 'ice-candidate-client', candidate: evt.candidate });
+
+    pc.onconnectionstatechange = () => pc.connectionState === 'failed' && handleDisconnected('Something went terribly wrong');
 
     pc.ondatachannel = (ev) => {
       dataChannel.current = ev.channel;
@@ -173,10 +175,6 @@ export default function Game() {
     const alphaHex = values[3] !== undefined ? alphaToHex(values[3]) : '';
 
     return hexColor + alphaHex;
-  }
-
-  function showSuccess(message?: string) {
-    toast.success(message ?? 'Success')
   }
 
   function showError(message?: string) {
