@@ -31,6 +31,7 @@ export default function Game() {
     function handleConnected() {
       showSuccess("Connected!");
       setConnectionState(ConnectionState.CONNECTED);
+      setIsAcceptingInput(true);
     }
 
     function handleDisconnected(error?: string) {
