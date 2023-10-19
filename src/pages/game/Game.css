@@ -100,15 +100,15 @@
   display: flex;
   align-items: center;
   position: absolute;
-  top: 45px;
-  right: 10px;
+  top: 50px;
+  right: 15px;
 }
 
 .player-color-dot {
   display: inline-block;
-  width: 10px;
-  height: 10px;
-  border-radius: 5px;
+  width: 15px;
+  height: 15px;
+  border-radius: 7.5px;
   margin-left: 5px;
 }
 

@@ -144,19 +144,16 @@ export default function Game() {
   }, [isLeftPressed, isRightPressed]);
 
   function rgbaToHex(rgba: string) {
-    // Extracting the values from the rgba string
     const matches = RegExp(/\(([^)]+)\)/).exec(rgba);
     if (!matches) return '';
 
     const values = matches[1].split(',').map(parseFloat);
 
-    // Convert the RGB values to HEX
     const toHex = (value: number): string => {
       const hex = Math.round(value * 255).toString(16);
       return hex.length === 1 ? '0' + hex : hex;
     };
 
-    // Convert the alpha value to HEX (if it exists)
     const alphaToHex = (value: number): string => {
       const hex = Math.round(value * 255).toString(16);
       return hex.length === 1 ? '0' + hex : hex;
@@ -202,10 +199,12 @@ export default function Game() {
           )}
         </div>
 
-        <div className="player-color-state">
-          Player color:
-          <span className="player-color-dot" style={{ backgroundColor: playerColor }}></span>
-        </div>
+        {connectionState === ConnectionState.CONNECTED && (
+          <div className="player-color-state">
+            Player color:
+            <span className="player-color-dot" style={{ backgroundColor: playerColor }}></span>
+          </div>
+        )}
       </div>
 
       <div className="button-container">
