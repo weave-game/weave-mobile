@@ -37,6 +37,10 @@ export default function Game() {
       showError(error ?? 'Connection closed');
       setConnectionState(ConnectionState.DISCONNECTED);
       setIsAcceptingInput(false);
+
+      if (dataChannel.current) {
+        dataChannel.current.close();
+      }
     }
 
     const id = Math.random().toString(16).slice(2);
