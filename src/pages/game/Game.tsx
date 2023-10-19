@@ -131,6 +131,8 @@ export default function Game() {
 
     if (isAcceptingInput) {
       SendMessage(DirectionState[directionState])
+    } else {
+      setDirectionState(DirectionState.FORWARD);
     }
   }, [directionState, isAcceptingInput])
 
