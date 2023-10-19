@@ -52,14 +52,15 @@ export default function Game() {
 
     ws.onopen = async () => sendWebsocketMessage({ type: 'register-client' });
 
-    ws.onerror = async () => handleDisconnected('Unable to connect to server');
+    ws.onerror = async () => handleDisconnected('WebSocket error: Unable to connect to server');
 
     pc.onicecandidate = evt => evt.candidate && sendWebsocketMessage({ type: 'ice-candidate-client', candidate: evt.candidate });
 
     pc.ondatachannel = (ev) => {
       dataChannel.current = ev.channel;
       dataChannel.current.onopen = () => handleConnected();
-      dataChannel.current.onclose = () => handleDisconnected('Connection closed');
+      dataChannel.current.onerror = () => handleDisconnected('WebRTC error: Connection closed');
+      dataChannel.current.onclose = () => handleDisconnected('WebRTC error: Connection closed');
     };
 
     // Handle signaling server message
