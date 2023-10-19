@@ -218,11 +218,11 @@ export default function Game() {
       <div className="button-container">
         <button className="button-left"
           disabled={!isAcceptingInput}
-          onMouseDown={() => setIsLeftPressed(true)}
-          onMouseUp={() => setIsLeftPressed(false)}
-          onTouchStart={() => { setIsLeftPressed(true) }}
-          onTouchEnd={() => setIsLeftPressed(false)}
-          onTouchCancel={() => setIsLeftPressed(false)}>
+          onMouseDown={(event) => { event.preventDefault(); setIsLeftPressed(true) }}
+          onMouseUp={(event) => { event.preventDefault(); setIsLeftPressed(false) }}
+          onTouchStart={(event) => { event.preventDefault(); setIsLeftPressed(true) }}
+          onTouchEnd={(event) => { event.preventDefault(); setIsLeftPressed(false) }}
+          onTouchCancel={(event) => { event.preventDefault(); setIsLeftPressed(false) }}>
           &lt;
         </button>
 
@@ -230,11 +230,11 @@ export default function Game() {
 
         <button className="button-right"
           disabled={!isAcceptingInput}
-          onMouseDown={() => setIsRightPressed(true)}
-          onMouseUp={() => setIsRightPressed(false)}
-          onTouchStart={() => { setIsRightPressed(true) }}
-          onTouchEnd={() => setIsRightPressed(false)}
-          onTouchCancel={() => setIsRightPressed(false)}>
+          onMouseDown={(event) => { event.preventDefault(); setIsRightPressed(true) }}
+          onMouseUp={(event) => { event.preventDefault(); setIsRightPressed(false) }}
+          onTouchStart={(event) => { event.preventDefault(); setIsRightPressed(true) }}
+          onTouchEnd={(event) => { event.preventDefault(); setIsRightPressed(false) }}
+          onTouchCancel={(event) => { event.preventDefault(); setIsRightPressed(false) }}>
           &gt;
         </button>
       </div>
