@@ -108,9 +108,7 @@ export default function Game() {
           break;
 
         case 'color-change':
-          console.log(obj?.color)
-          console.log(rgbaToHex( obj?.color ))
-          setPlayerColor(rgbaToHex(obj?.color));
+          setPlayerColor(obj?.color);
           break
 
         case 'error':
@@ -156,28 +154,6 @@ export default function Game() {
       setDirectionState(DirectionState.RIGHT);
     }
   }, [isLeftPressed, isRightPressed]);
-
-  function rgbaToHex(rgba: string) {
-    const matches = RegExp(/\(([^)]+)\)/).exec(rgba);
-    if (!matches) return '';
-
-    const values = matches[1].split(',').map(parseFloat);
-
-    const toHex = (value: number): string => {
-      const hex = Math.round(value * 255).toString(16);
-      return hex.length === 1 ? '0' + hex : hex;
-    };
-
-    const alphaToHex = (value: number): string => {
-      const hex = Math.round(value * 255).toString(16);
-      return hex.length === 1 ? '0' + hex : hex;
-    };
-
-    const hexColor = `#${toHex(values[0])}${toHex(values[1])}${toHex(values[2])}`;
-    const alphaHex = values[3] !== undefined ? alphaToHex(values[3]) : '';
-
-    return hexColor + alphaHex;
-  }
 
   function showError(message?: string) {
     toast.error(message ?? 'Error');
