@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react'
 import { useLocation } from 'react-router-dom'
-import toast, { Toaster } from 'react-hot-toast';
+import toast, { Toaster } from 'react-hot-toast'
 import './Game.css'
 
 enum DirectionState {
@@ -16,147 +16,152 @@ enum ConnectionState {
   CONNECTING
 }
 
-export default function Game() {
-  const location = useLocation();
-  const [directionState, setDirectionState] = useState<DirectionState>(DirectionState.NONE);
-  const [isLeftPressed, setIsLeftPressed] = useState<boolean>(false);
-  const [isRightPressed, setIsRightPressed] = useState<boolean>(false);
-  const [connectionState, setConnectionState] = useState<ConnectionState>(ConnectionState.CONNECTING);
-  const [isAcceptingInput, setIsAcceptingInput] = useState<boolean>(false);
-  const [playerColor, setPlayerColor] = useState<string>('#fff');
-  const dataChannel = useRef<RTCDataChannel>();
-  const WEBSOCKET_URL = process.env.REACT_APP_WEBSOCKET_SERVER ?? 'ws://localhost:8080';
+export default function Game (): JSX.Element {
+  const location = useLocation()
+  const [directionState, setDirectionState] = useState<DirectionState>(DirectionState.NONE)
+  const [isLeftPressed, setIsLeftPressed] = useState<boolean>(false)
+  const [isRightPressed, setIsRightPressed] = useState<boolean>(false)
+  const [connectionState, setConnectionState] = useState<ConnectionState>(ConnectionState.CONNECTING)
+  const [isAcceptingInput, setIsAcceptingInput] = useState<boolean>(false)
+  const [playerColor, setPlayerColor] = useState<string>('#fff')
+  const dataChannel = useRef<RTCDataChannel>()
+  const WEBSOCKET_URL = process.env.REACT_APP_WEBSOCKET_SERVER ?? 'ws://localhost:8080'
 
   useEffect(() => {
-    function handleConnected() {
-      toast.success('Connected!');
-      setConnectionState(ConnectionState.CONNECTED);
-      setIsAcceptingInput(true);
+    function handleConnected (): void {
+      toast.success('Connected!')
+      setConnectionState(ConnectionState.CONNECTED)
+      setIsAcceptingInput(true)
     }
 
-    function handleDisconnected(error?: string) {
-      showError(error ?? 'Connection closed');
-      setConnectionState(ConnectionState.DISCONNECTED);
-      setIsAcceptingInput(false);
+    function handleDisconnected (error?: string): void {
+      showError(error ?? 'Connection closed')
+      setConnectionState(ConnectionState.DISCONNECTED)
+      setIsAcceptingInput(false)
 
-      if (dataChannel.current) {
-        dataChannel.current.close();
+      if (dataChannel.current !== undefined) {
+        dataChannel.current.close()
       }
     }
 
-    const id = Math.random().toString(16).slice(2);
-    const lobbyCode = location.pathname.substring(1);
+    const id = Math.random().toString(16).slice(2)
+    const lobbyCode = location.pathname.substring(1)
     const configuration: RTCConfiguration = {
       iceServers: [
         { urls: 'stun:stun.l.google.com:19302' }
       ]
-    };
-    const pc = new RTCPeerConnection(configuration);
-    const ws = new WebSocket(WEBSOCKET_URL, []);
-    let candidateQueue: RTCIceCandidate[] = [];
+    }
+    const pc = new RTCPeerConnection(configuration)
+    const ws = new WebSocket(WEBSOCKET_URL, [])
+    let candidateQueue: RTCIceCandidate[] = []
 
-    ws.onopen = async () => sendWebsocketMessage({ type: 'register-client' });
+    ws.onopen = async () => { sendWebsocketMessage({ type: 'register-client' }) }
 
-    ws.onerror = async () => handleDisconnected('WebSocket error: Unable to connect to server');
+    ws.onerror = async () => { handleDisconnected('WebSocket error: Unable to connect to server') }
 
-    pc.onicecandidate = evt => evt.candidate && sendWebsocketMessage({ type: 'ice-candidate-client', candidate: evt.candidate });
+    pc.onicecandidate = evt => { evt.candidate !== null && sendWebsocketMessage({ type: 'ice-candidate-client', candidate: evt.candidate }) }
 
-    pc.onconnectionstatechange = () => pc.connectionState === 'failed' && handleDisconnected('Something went terribly wrong');
+    pc.onconnectionstatechange = () => { pc.connectionState === 'failed' && handleDisconnected('Something went terribly wrong') }
 
     pc.ondatachannel = (ev) => {
-      dataChannel.current = ev.channel;
-      dataChannel.current.onopen = () => handleConnected();
-      dataChannel.current.onerror = () => handleDisconnected('WebRTC error: Connection closed');
-      dataChannel.current.onclose = () => handleDisconnected('WebRTC error: Connection closed');
-    };
+      dataChannel.current = ev.channel
+      dataChannel.current.onopen = () => { handleConnected() }
+      dataChannel.current.onerror = () => { handleDisconnected('WebRTC error: Connection closed') }
+      dataChannel.current.onclose = () => { handleDisconnected('WebRTC error: Connection closed') }
+    }
 
     // Handle signaling server message
     ws.onmessage = async function (evt) {
-      let obj = JSON.parse(evt.data);
+      const obj = JSON.parse(evt.data)
 
       switch (obj?.type) {
-        case 'ice-candidate':
-          let candidateObject = obj?.candidate;
-          if (!candidateObject.candidate.startsWith('candidate:')) {
-            candidateObject.candidate = 'candidate:' + candidateObject.candidate;
-          }
-          if (pc.remoteDescription) {
-            pc.addIceCandidate(candidateObject);
-          } else {
-            candidateQueue.push(candidateObject);
-          }
-          break;
+        case 'ice-candidate': {
+          const candidateObject: any = obj?.candidate
+          const candidateString: string = candidateObject.candidate
 
-        case 'offer':
-          let newOffer = {
+          if (!candidateString.startsWith('candidate:')) {
+            candidateObject.candidate = 'candidate:' + candidateObject.candidate
+          }
+
+          if (pc.remoteDescription !== null) {
+            void pc.addIceCandidate(candidateObject)
+          } else {
+            candidateQueue.push(candidateObject)
+          }
+          break
+        }
+
+        case 'offer': {
+          const newOffer = {
             type: obj?.type,
             sdp: obj?.offer.sdp
           }
-          await pc.setRemoteDescription(new RTCSessionDescription(newOffer));
-          pc.createAnswer()
-            .then((answer) => pc.setLocalDescription(answer))
-            .then(() => sendWebsocketMessage({ type: 'answer', answer: pc.localDescription }));
+          await pc.setRemoteDescription(new RTCSessionDescription(newOffer))
+          void pc.createAnswer()
+            .then(async (answer) => { await pc.setLocalDescription(answer) })
+            .then(() => { sendWebsocketMessage({ type: 'answer', answer: pc.localDescription }) })
 
           for (const candidate of candidateQueue) {
-            await pc.addIceCandidate(candidate);
+            await pc.addIceCandidate(candidate)
           }
-          candidateQueue = [];
-          break;
+          candidateQueue = []
+          break
+        }
 
         case 'message':
-          setIsAcceptingInput(obj.message === 'start');
-          break;
+          setIsAcceptingInput(obj.message === 'start')
+          break
 
         case 'color-change':
-          setPlayerColor(obj?.color);
+          setPlayerColor(obj?.color)
           break
 
         case 'error':
-          handleDisconnected(obj?.message);
+          handleDisconnected(obj?.message)
           break
 
         default:
-          showError('Message type not supported');
+          showError('Message type not supported')
       }
-    };
-
-    function sendWebsocketMessage(message: any) {
-      message.lobbyCode = lobbyCode;
-      message.clientId = id;
-      ws.send(JSON.stringify(message));
     }
-  }, [WEBSOCKET_URL, location.pathname]);
+
+    function sendWebsocketMessage (message: any): void {
+      message.lobbyCode = lobbyCode
+      message.clientId = id
+      ws.send(JSON.stringify(message))
+    }
+  }, [WEBSOCKET_URL, location.pathname])
 
   useEffect(() => {
-    function SendMessage(message: string) {
-      if (dataChannel.current && dataChannel.current.readyState === 'open') {
-        dataChannel.current.send(message);
+    function SendMessage (message: string): void {
+      if (dataChannel.current !== undefined && dataChannel.current.readyState === 'open') {
+        dataChannel.current.send(message)
       } else {
-        showError('Data channel is not open');
+        showError('Data channel is not open')
       }
     }
 
     if (isAcceptingInput) {
       SendMessage(DirectionState[directionState])
     } else {
-      setDirectionState(DirectionState.FORWARD);
-      setIsLeftPressed(false);
-      setIsRightPressed(false);
+      setDirectionState(DirectionState.FORWARD)
+      setIsLeftPressed(false)
+      setIsRightPressed(false)
     }
   }, [directionState, isAcceptingInput])
 
   useEffect(() => {
     if ((isLeftPressed && isRightPressed) || (!isLeftPressed && !isRightPressed)) {
-      setDirectionState(DirectionState.FORWARD);
+      setDirectionState(DirectionState.FORWARD)
     } else if (isLeftPressed) {
-      setDirectionState(DirectionState.LEFT);
+      setDirectionState(DirectionState.LEFT)
     } else if (isRightPressed) {
-      setDirectionState(DirectionState.RIGHT);
+      setDirectionState(DirectionState.RIGHT)
     }
-  }, [isLeftPressed, isRightPressed]);
+  }, [isLeftPressed, isRightPressed])
 
-  function showError(message?: string) {
-    toast.error(message ?? 'Error');
+  function showError (message?: string): void {
+    toast.error(message ?? 'Error')
   }
 
   return (
@@ -217,5 +222,5 @@ export default function Game() {
         </button>
       </div>
     </div>
-  );
+  )
 };

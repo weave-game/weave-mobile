@@ -1,11 +1,11 @@
-import React from 'react';
-import { BrowserRouter, Routes, Route, Outlet } from 'react-router-dom';
-import Header from './components/Header';
-import Lobby from './pages/lobby/Lobby';
-import Game from './pages/game/Game';
-import PageNotFound from './pages/PageNotFound';
+import React from 'react'
+import { BrowserRouter, Routes, Route, Outlet } from 'react-router-dom'
+import Header from './components/Header'
+import Lobby from './pages/lobby/Lobby'
+import Game from './pages/game/Game'
+import PageNotFound from './pages/PageNotFound'
 
-export default function Router() {
+export default function Router (): JSX.Element {
   return (
     <BrowserRouter>
       <Routes>
