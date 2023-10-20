@@ -108,7 +108,8 @@ export default function Game() {
           break;
 
         case 'color-change':
-          showError(rgbaToHex(obj?.color))
+          console.log(obj?.color)
+          console.log(rgbaToHex( obj?.color ))
           setPlayerColor(rgbaToHex(obj?.color));
           break
 
