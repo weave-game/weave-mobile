@@ -3,7 +3,6 @@
     font-family: 'Arial', sans-serif;
 }
 
-/* Style for the text input */
 .input-lobby-code {
     padding: 10px 15px;
     font-size: 16px;
@@ -13,17 +12,33 @@
     outline: none;
     transition: border-color 0.3s, box-shadow 0.3s;
     margin: 10px;
-
-    /* Placeholder color */
-    ::placeholder {
-        color: #888;
-    }
+    text-transform: uppercase;
 }
 
-/* Style for the text input when focused */
+.input-lobby-code::placeholder {
+    color: #888;
+    text-transform: none;
+}
+
+.input-lobby-code::-webkit-input-placeholder {
+    text-transform: none;
+}
+
+.input-lobby-code::-moz-placeholder {
+    text-transform: none;
+}
+
+.input-lobby-code:-moz-placeholder {
+    text-transform: none;
+}
+
+.input-lobby-code:-ms-input-placeholder {
+    text-transform: none;
+}
+
 .input-lobby-code:focus {
     border-color: #31db7b;
-    box-shadow: 0 0 5px rgba(0,123,255,0.5);
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
 }
 
 .button-join-game {
@@ -38,17 +53,14 @@
     transition: background-color 0.3s, transform 0.2s;
     margin: 20px;
 
-    /* On hover */
     &:hover {
         background-color: #1c8047;
     }
 
-    /* Active state (when pressed) */
     &:active {
         transform: scale(0.98);
     }
 
-    /* Optional: Disabled state */
     &:disabled {
         cursor: not-allowed;
         opacity: 0.6;
